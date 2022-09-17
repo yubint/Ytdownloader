@@ -19,7 +19,6 @@ def zip_dir():
     return r'C:\Users\Anupam\Django\Django_project\Playlist'
 
 
-# Create your views here.
 
 #main home section for videos download
 def mainapp(request):
@@ -28,26 +27,26 @@ def mainapp(request):
 # returns a list of videos in a playlist
 def video_list(playlist_link):
 
-    playlist = pytube.contrib.playlist.Playlist(playlist_link)
     # creates an object playlist of the given playlist class in pytube
+    playlist = pytube.contrib.playlist.Playlist(playlist_link)
 
-    video_in_playlist_list = playlist.video_urls
     # gets the list of video urls in the playlist
+    video_in_playlist_list = playlist.video_urls
 
     return video_in_playlist_list
 
 # returns the name of the playlist with given link
 def get_playlist_name(playlist_link):
 
-    playlist = pytube.contrib.playlist.Playlist(playlist_link)
     # creates an object playlist of the given playlist class in pytube
+    playlist = pytube.contrib.playlist.Playlist(playlist_link)
 
     return playlist.title
 
 
 
 # download individual videos from pytube ,return them as
-# httpresponse with correct name and delete the file from server
+# httpresponse if required with correct name
 def download(url,return_name:bool = True):
 
     # creates a Youtube object of the video
@@ -73,17 +72,11 @@ def download(url,return_name:bool = True):
         video_data=server_video.read()
 
 
-    response=HttpResponse(video_data, headers={
-        'Content-Type':'mp4',
-        'Content-Disposition':f'attachment; filename={video_name}'
-    })
 
-    #removes  returns the response only when no argument is passed,
-    # if any argument is passed it doesn't remove the file
+    # returns the name if return_name argument is set to true
     if return_name==1:
         
-
-        return video_name
+         return video_name
 
 
 
@@ -146,6 +139,9 @@ def playlist_downloader(request,playlist_link):
         return render(request,'downloader/error.html',solution_dict)
 
 
+'''Takes the link and checks if its youtube link or not 
+and checks if it's a video link or a playlist link and treats 
+them accordingly to return the response'''
 def any_downloader(request):
     link=request.GET.get('url')
 
