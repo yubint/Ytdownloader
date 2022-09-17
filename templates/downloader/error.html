@@ -1,0 +1,31 @@
+{% extends 'downloader/base.html' %}
+{% block content %}
+
+
+<!-- Error should be a string inside a dictionary and solution should be a list -->
+<center>
+
+    <h2>
+        OOPS ERROR ENCOUNTERED
+    </h2>
+    <h3>
+        <br>{{error}}
+    </h3>
+
+    {% if solutions %}
+    <br><br>
+    {% for solution in solutions %}
+    <h5>
+        {{solution}}
+    </h5>
+    {% endfor %}
+    {% endif %}
+
+    <a href="/">Go back</a>
+
+</center>
+
+
+
+
+{% endblock content %}
