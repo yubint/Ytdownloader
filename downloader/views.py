@@ -13,10 +13,10 @@ import pytube
 
 # creating bunch of variables for paths used
 def video_dir():
-    return r'C:\Users\Anupam\Django\Video'
+    return r'C:\Users\Anupam\Django\Django_project\Video'
 
 def zip_dir():
-    return r'C:\Users\Anupam\Django\Playlist'
+    return r'C:\Users\Anupam\Django\Django_project\Playlist'
 
 
 # Create your views here.
