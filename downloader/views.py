@@ -1,4 +1,3 @@
-from distutils.log import error
 from http import server
 from http.client import HTTPResponse
 
@@ -24,24 +23,36 @@ def zip_dir():
 def mainapp(request):
     return render(request,"downloader/mainapp.html")
     
-# returns a list of videos in a playlist
-def video_list(playlist_link):
 
-    # creates an object playlist of the given playlist class in pytube
-    playlist = pytube.contrib.playlist.Playlist(playlist_link)
 
-    # gets the list of video urls in the playlist
-    video_in_playlist_list = playlist.video_urls
+'''Takes the link and checks if its youtube link or not
+and checks if it's a video link or a playlist link and treats 
+them accordingly to return the  httpresponse'''
+def any_downloader(request):
+    link=request.GET.get('url')
 
-    return video_in_playlist_list
+    # checking if the link is youtube link or not
+    if "youtu" in link:
+        #checkig if link is playlist or video
+        if "playlist" in link:
+            return playlist_downloader(request,link)
+        else:
+            return video_downloader(link)
 
-# returns the name of the playlist with given link
-def get_playlist_name(playlist_link):
 
-    # creates an object playlist of the given playlist class in pytube
-    playlist = pytube.contrib.playlist.Playlist(playlist_link)
+    
+    # if it's not a youtube link
+    else:
+        solutions=['Please enter a Youtube Link']
+        error_message='Given link is not a youtube link'
+        error_dict={
+            'error':error_message,
+            'solutions':solutions
+        }
 
-    return playlist.title
+        return render(request,'downloader/error.html',error_dict)
+
+
 
 
 
@@ -59,7 +70,7 @@ def download(url,return_name:bool = True):
     #     youtube_stream = youtube_video.streams.get_by_itag(137)
 
 
-    video_name=youtube_stream.default_filename
+
 
 
     file_location=video_dir()
@@ -75,6 +86,7 @@ def download(url,return_name:bool = True):
 
     # returns the name if return_name argument is set to true
     if return_name==1:
+        video_name=youtube_stream.default_filename
         
          return video_name
 
@@ -85,6 +97,30 @@ def playlist_downloader(request,playlist_link):
 
     # trying for the code to run
     try:
+        
+        # returns a list of videos in a playlist
+        def video_list(playlist_link):
+
+            # creates an object playlist of the given playlist class in pytube
+            playlist = pytube.contrib.playlist.Playlist(playlist_link)
+
+            # gets the list of video urls in the playlist
+            video_in_playlist_list = playlist.video_urls
+
+            return video_in_playlist_list
+
+        # returns the name of the playlist with given link
+        def get_playlist_name(playlist_link):
+
+            # creates an object playlist of the given playlist class in pytube
+            playlist = pytube.contrib.playlist.Playlist(playlist_link)
+
+            return playlist.title
+
+
+
+        # code starts here
+
         playlist_name=get_playlist_name(playlist_link)
 
         # creating variables for paths of video and zip file
@@ -139,44 +175,22 @@ def playlist_downloader(request,playlist_link):
         return render(request,'downloader/error.html',solution_dict)
 
 
-'''Takes the link and checks if its youtube link or not 
-and checks if it's a video link or a playlist link and treats 
-them accordingly to return the  httpresponse'''
-def any_downloader(request):
-    link=request.GET.get('url')
+# Downloads the video and removes it from the server after creating a response 
+def video_downloader(link):
 
-    # checking if the link is youtube link or not
-    if "youtu" in link:
-        #checkig if link is playlist or video
-        if "playlist" in link:
-            return playlist_downloader(request,link)
-        else:
+    file_location=video_dir()
 
-            file_location=video_dir()
+    video_name=download(link)
 
-            video_name=download(link)
+    #read the file  to a variable video_data
+    with open(file_location+"/"+video_name,"rb") as server_video:
+        video_data=server_video.read()
 
-            #read the file  to a variable video_data
-            with open(file_location+"/"+video_name,"rb") as server_video:
-                video_data=server_video.read()
+    os.remove(file_location+"/"+video_name)
 
-            os.remove(file_location+"/"+video_name)
+    response=HttpResponse(video_data, headers={
+    'Content-Type':'video/mp4',
+    'Content-Disposition':f'attachment; filename={video_name}'
+    })
 
-            response=HttpResponse(video_data, headers={
-            'Content-Type':'video/mp4',
-            'Content-Disposition':f'attachment; filename={video_name}'
-            })
-
-            return response
-    
-    # if it's not a youtube link
-    else:
-        solutions=['Please enter a Youtube Link']
-        error_message='Given link is not a youtube link'
-        error_dict={
-            'error':error_message,
-            'solutions':solutions
-        }
-
-        return render(request,'downloader/error.html',error_dict)
-            
+    return response
